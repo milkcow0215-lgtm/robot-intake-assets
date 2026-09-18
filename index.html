@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#a60820">
+  <meta name="description" content="KT 회수로봇 현장 입고 등록 웹앱 실행기">
+  <meta name="robots" content="noindex,nofollow">
+  <title>KT 로봇 회수 관리</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./app-icon-192.png">
+  <link rel="apple-touch-icon" href="./app-icon-192.png">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+      background: #f4f6f9;
+      color: #172033;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 8%, rgba(198, 17, 47, .12), transparent 38%),
+        #f4f6f9;
+    }
+
+    main {
+      width: min(100%, 420px);
+      padding: 30px 24px 26px;
+      background: #fff;
+      border: 1px solid #e3e8ef;
+      border-radius: 24px;
+      box-shadow: 0 18px 48px rgba(23, 32, 51, .12);
+      text-align: center;
+    }
+
+    .icon {
+      width: 112px;
+      height: 112px;
+      border-radius: 25px;
+      box-shadow: 0 12px 28px rgba(166, 8, 32, .24);
+    }
+
+    h1 {
+      margin: 20px 0 8px;
+      font-size: 1.55rem;
+      line-height: 1.3;
+    }
+
+    p {
+      margin: 0;
+      color: #667085;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    button, a {
+      min-height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      border: 0;
+      font: inherit;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    #installButton {
+      background: #a60820;
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(166, 8, 32, .22);
+    }
+
+    #installButton[hidden] { display: none; }
+
+    .open-button {
+      background: #edf1f6;
+      color: #25324a;
+    }
+
+    .guide {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid #e7ebf0;
+      font-size: .9rem;
+    }
+
+    .launching {
+      display: none;
+      margin-top: 18px;
+      color: #a60820;
+      font-weight: 750;
+    }
+
+    html.app-launching .actions,
+    html.app-launching .guide { display: none; }
+
+    html.app-launching .launching { display: block; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="icon" src="./app-icon-192.png" alt="KT 로봇 회수 관리 아이콘">
+    <h1>회수로봇 입고 등록</h1>
+    <p>홈 화면에 설치하면 전용 아이콘으로 바로 실행할 수 있습니다.</p>
+
+    <div class="actions">
+      <button type="button" id="installButton" hidden>홈 화면에 설치</button>
+      <a class="open-button" href="https://script.google.com/macros/s/AKfycbyd-Uq85dE6vcxFjUe5V0G_yZwDp_gb6Up7CJXobWiNlYHiEMn-NTIM0fTTFQpQX10tWQ/exec">웹앱 바로 열기</a>
+    </div>
+
+    <p class="guide">설치 버튼이 보이지 않으면 Chrome 메뉴에서<br><strong>홈 화면에 추가 → 설치</strong>를 선택하세요.</p>
+    <p class="launching">입고 등록 화면을 여는 중입니다…</p>
+  </main>
+
+  <script>
+    const APP_URL = 'https://script.google.com/macros/s/AKfycbyd-Uq85dE6vcxFjUe5V0G_yZwDp_gb6Up7CJXobWiNlYHiEMn-NTIM0fTTFQpQX10tWQ/exec';
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.startsWith('android-app://');
+
+    if (isStandalone) {
+      document.documentElement.classList.add('app-launching');
+      window.setTimeout(() => window.location.replace(APP_URL), 350);
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+
+    let installPrompt;
+    const installButton = document.getElementById('installButton');
+
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      installPrompt = event;
+      installButton.hidden = false;
+    });
+
+    installButton.addEventListener('click', async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      installButton.hidden = true;
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installButton.hidden = true;
+    });
+  </script>
+</body>
+</html>
